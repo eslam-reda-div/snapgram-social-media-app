@@ -1,38 +1,7 @@
-import {
-  useQuery,
-  useMutation,
-  useQueryClient,
-  useInfiniteQuery,
-} from "@tanstack/react-query";
-
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/lib/react-query/queryKeys";
-import {
-  createUserAccount,
-  signInAccount,
-  getCurrentUser,
-  signOutAccount,
-  getUsers,
-  createPost,
-  getPostById,
-  updatePost,
-  getUserPosts,
-  deletePost,
-  likePost,
-  getUserById,
-  updateUser,
-  getRecentPosts,
-  getInfinitePosts,
-  searchPosts,
-  savePost,
-  deleteSavedPost,
-  followUser,
-  unFollowUser,
-} from "@/lib/appwrite/api";
+import { createUserAccount, signInAccount, getCurrentUser, signOutAccount, getUsers, createPost, getPostById, updatePost, getUserPosts, deletePost, likePost, getUserById, updateUser, getRecentPosts, getInfinitePosts, searchPosts, savePost, deleteSavedPost, followUser, unFollowUser } from "@/lib/appwrite/api";
 import { INewPost, INewUser, IUpdatePost, IUpdateUser } from "@/types";
-
-// ============================================================
-// AUTH QUERIES
-// ============================================================
 
 export const useCreateUserAccount = () => {
   return useMutation({
@@ -53,21 +22,15 @@ export const useSignOutAccount = () => {
   });
 };
 
-// ============================================================
-// POST QUERIES
-// ============================================================
-
 export const useGetPosts = () => {
   return useInfiniteQuery({
     queryKey: [QUERY_KEYS.GET_INFINITE_POSTS],
     queryFn: getInfinitePosts as any,
     getNextPageParam: (lastPage: any) => {
-      // If there's no data, there are no more pages.
       if (lastPage && lastPage.documents.length === 0) {
         return null;
       }
 
-      // Use the $id of the last document as the cursor.
       const lastId = lastPage.documents[lastPage.documents.length - 1].$id;
       return lastId;
     },
@@ -178,11 +141,7 @@ export const useFollow = () => {
     }: {
       currentUser: string;
       user: string;
-    }) => {
-    //  console.log('currentUser', currentUser)
-    //   console.log('user', user) 
-      return followUser(currentUser, user)
-    },
+    }) => followUser(currentUser, user),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_USER_FOLLOW],
@@ -200,9 +159,7 @@ export const useUnFollow = () => {
     }: {
       currentUser: string;
       user: string;
-    }) => {
-      return unFollowUser(currentUser, user)
-    },
+    }) => unFollowUser(currentUser, user),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_USER_FOLLOW],
@@ -247,10 +204,6 @@ export const useDeleteSavedPost = () => {
     },
   });
 };
-
-// ============================================================
-// USER QUERIES
-// ============================================================
 
 export const useGetCurrentUser = () => {
   return useQuery({

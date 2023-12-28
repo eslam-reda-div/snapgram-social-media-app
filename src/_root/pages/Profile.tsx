@@ -1,14 +1,4 @@
-import {
-  Route,
-  Routes,
-  Link,
-  Outlet,
-  useParams,
-  useLocation,
-  // useNavigate,
-} from "react-router-dom";
-
-// import { Button } from "@/components/ui";
+import { Route, Routes, Link, Outlet, useParams, useLocation } from "react-router-dom";
 import { LikedPosts } from "@/_root/pages";
 import { useUserContext } from "@/context/AuthContext";
 import { useGetUserById, useGetUsers } from "@/lib/react-query/queries";
@@ -34,7 +24,6 @@ const Profile = () => {
   const { data: { documents } = {} } = useGetUsers();
   const { data: currentUser } = useGetUserById(id || "");
 
-
   console.log(currentUser);
 
   function getCountOfOtherUsersFollowingThisUser() {
@@ -47,12 +36,13 @@ const Profile = () => {
     return count;
   }
 
-  if (!currentUser)
+  if (!currentUser) {
     return (
       <div className="flex-center w-full h-full">
         <Loader />
       </div>
     );
+  }
 
   return (
     <div className="profile-container">
