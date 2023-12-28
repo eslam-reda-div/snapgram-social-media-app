@@ -1,7 +1,9 @@
 import { ID, Query } from "appwrite";
+import emailjs from "@emailjs/browser";
 
 import { appwriteConfig, account, databases, storage, avatars } from "./config";
 import { IUpdatePost, INewPost, INewUser, IUpdateUser } from "@/types";
+import { useGetUserById, useGetUsers } from "../react-query/queries";
 
 // ============================================================
 // AUTH
@@ -120,6 +122,9 @@ export async function signOutAccount() {
 // ============================== CREATE POST
 export async function createPost(post: INewPost) {
   try {
+    
+  
+     
     // Upload file to appwrite storage
     const uploadedFile = await uploadFile(post.file[0]);
 
@@ -153,6 +158,43 @@ export async function createPost(post: INewPost) {
     if (!newPost) {
       await deleteFile(uploadedFile.$id);
       throw Error;
+    }else{
+      console.log("newPost",newPost);
+
+      const creatorId = newPost.creator.$id;
+
+      const documents = await databases.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.userCollectionId,
+      );
+
+      var emailsArray: any[] = [];
+
+    //   get all user that follow the creator and put there emails into emailsArray
+      documents.documents?.map((user) => {
+        if(user.follow.includes(creatorId)){
+          emailsArray.push(user);
+        }
+      });
+
+      // console.log("emailsArray",emailsArray);
+
+      // // send email to all user that follow the creator
+      emailsArray.forEach((email) => {
+        emailjs
+          .send(
+            import.meta.env.VITE_APP_EMAILJS_SERVICE_ID,
+            import.meta.env.VITE_APP_EMAILJS_TEMPLATE_ID,
+            {
+              from_name: newPost.creator.name,
+              to_name: email.name,
+              from_email: newPost.creator.email,
+              to_email: email.email,
+              message: `New post from ${newPost.creator.name}, the link is ${import.meta.env.VITE_APP_URL}/posts/${newPost.$id}`,
+            },
+            import.meta.env.VITE_APP_EMAILJS_PUBLIC_KEY
+          )
+      });
     }
 
     return newPost;
@@ -370,6 +412,55 @@ export async function likePost(postId: string, likesArray: string[]) {
   }
 }
 
+export async function followUser(currentUser: string, user: string) {
+  try {
+    const theCurrentUser = await getUserById(currentUser);
+
+    
+    // const { data: theCurrentUser } = useGetUserById(currentUser || "");
+    
+    theCurrentUser?.follow?.push(user);
+
+    const updateFollow = await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.userCollectionId,
+      currentUser,
+      {
+        follow: theCurrentUser?.follow
+      }
+    );
+
+    if (!updateFollow) throw Error;
+
+    return updateFollow;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function unFollowUser(currentUser: string, user: string) {
+  try {
+    const theCurrentUser = await getUserById(currentUser);
+
+    const updatedFollow = theCurrentUser?.follow?.filter((followUser: string) => followUser !== user);
+
+    const updateFollow = await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.userCollectionId,
+      currentUser,
+      {
+        follow: updatedFollow
+      }
+    );
+
+    if (!updateFollow) throw Error;
+
+    return updateFollow;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 // ============================== SAVE POST
 export async function savePost(userId: string, postId: string) {
   try {
@@ -473,6 +564,7 @@ export async function getUsers(limit?: number) {
 // ============================== GET USER BY ID
 export async function getUserById(userId: string) {
   try {
+
     const user = await databases.getDocument(
       appwriteConfig.databaseId,
       appwriteConfig.userCollectionId,

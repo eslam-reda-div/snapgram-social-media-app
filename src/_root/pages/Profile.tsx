@@ -5,13 +5,16 @@ import {
   Outlet,
   useParams,
   useLocation,
+  // useNavigate,
 } from "react-router-dom";
 
-import { Button } from "@/components/ui";
+// import { Button } from "@/components/ui";
 import { LikedPosts } from "@/_root/pages";
 import { useUserContext } from "@/context/AuthContext";
-import { useGetUserById } from "@/lib/react-query/queries";
+import { useGetUserById, useGetUsers } from "@/lib/react-query/queries";
 import { GridPostList, Loader } from "@/components/shared";
+import { FollowButton } from "@/components/ui/FollowButton";
+import { useFollowContext } from "@/context/FollowContext";
 
 interface StabBlockProps {
   value: string | number;
@@ -29,8 +32,21 @@ const Profile = () => {
   const { id } = useParams();
   const { user } = useUserContext();
   const { pathname } = useLocation();
-
+  const { data: { documents } = {} } = useGetUsers();
   const { data: currentUser } = useGetUserById(id || "");
+
+
+  console.log(currentUser);
+
+  function getCountOfOtherUsersFollowingThisUser() {
+    var count = 0;
+    documents?.forEach((document: any) => {
+      if (document.follow.includes(id)) {
+        count++;
+      }
+    });
+    return count;
+  }
 
   if (!currentUser)
     return (
@@ -39,7 +55,6 @@ const Profile = () => {
       </div>
     );
 
-    console.log(currentUser)
   return (
     <div className="profile-container">
       <div className="profile-inner_container">
@@ -63,8 +78,8 @@ const Profile = () => {
 
             <div className="flex gap-8 mt-10 items-center justify-center xl:justify-start flex-wrap z-20">
               <StatBlock value={currentUser.post.length} label="Posts" />
-              <StatBlock value={1} label="Followers" />
-              <StatBlock value={0} label="Following" />
+              <StatBlock value={getCountOfOtherUsersFollowingThisUser()} label="Followers" />
+              <StatBlock value={currentUser.follow.length} label="Following" />
             </div>
 
             <p className="small-medium md:base-medium text-center xl:text-left mt-7 max-w-screen-sm">
@@ -91,9 +106,9 @@ const Profile = () => {
               </Link>
             </div>
             <div className={`${user.id === id && "hidden"}`}>
-              <Button type="button" className="shad-button_primary px-8">
+              <FollowButton currentUser={user} user={currentUser}  type="button" size="sm" className="shad-button_primary px-5">
                 Follow
-              </Button>
+              </FollowButton>
             </div>
           </div>
         </div>

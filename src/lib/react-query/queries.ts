@@ -25,6 +25,8 @@ import {
   searchPosts,
   savePost,
   deleteSavedPost,
+  followUser,
+  unFollowUser,
 } from "@/lib/appwrite/api";
 import { INewPost, INewUser, IUpdatePost, IUpdateUser } from "@/types";
 
@@ -162,6 +164,48 @@ export const useLikePost = () => {
       });
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_CURRENT_USER],
+      });
+    },
+  });
+};
+
+export const useFollow = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      currentUser,
+      user,
+    }: {
+      currentUser: string;
+      user: string;
+    }) => {
+    //  console.log('currentUser', currentUser)
+    //   console.log('user', user) 
+      return followUser(currentUser, user)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_USER_FOLLOW],
+      });
+    },
+  });
+};
+
+export const useUnFollow = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      currentUser,
+      user,
+    }: {
+      currentUser: string;
+      user: string;
+    }) => {
+      return unFollowUser(currentUser, user)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_USER_FOLLOW],
       });
     },
   });
