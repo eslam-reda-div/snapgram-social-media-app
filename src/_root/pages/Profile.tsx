@@ -14,7 +14,6 @@ import { useUserContext } from "@/context/AuthContext";
 import { useGetUserById, useGetUsers } from "@/lib/react-query/queries";
 import { GridPostList, Loader } from "@/components/shared";
 import { FollowButton } from "@/components/ui/FollowButton";
-import { useFollowContext } from "@/context/FollowContext";
 
 interface StabBlockProps {
   value: string | number;
